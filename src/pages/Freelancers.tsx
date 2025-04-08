@@ -1,6 +1,7 @@
 
-import MainLayout from "@/components/layout/MainLayout";
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import MainLayout from "@/components/layout/MainLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -59,6 +60,17 @@ const freelancersData = [
 const Freelancers = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterVisible, setFilterVisible] = useState(false);
+  
+  // Filter freelancers based on search query
+  const filteredFreelancers = searchQuery.trim() === "" 
+    ? freelancersData 
+    : freelancersData.filter(freelancer => 
+        freelancer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        freelancer.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        freelancer.skills.some(skill => 
+          skill.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      );
 
   return (
     <MainLayout>
@@ -91,63 +103,76 @@ const Freelancers = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {freelancersData.map((freelancer) => (
-            <Card key={freelancer.id} className="overflow-hidden hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center">
-                    <Avatar className="h-12 w-12 mr-3">
-                      <AvatarImage src={freelancer.avatar} />
-                      <AvatarFallback>{freelancer.name[0]}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h3 className="font-semibold text-lg">{freelancer.name}</h3>
-                      <p className="text-gray-600 text-sm">{freelancer.title}</p>
+          {filteredFreelancers.length > 0 ? (
+            filteredFreelancers.map((freelancer) => (
+              <Card key={freelancer.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center">
+                      <Avatar className="h-12 w-12 mr-3">
+                        <AvatarImage src={freelancer.avatar} />
+                        <AvatarFallback>{freelancer.name[0]}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h3 className="font-semibold text-lg">{freelancer.name}</h3>
+                        <p className="text-gray-600 text-sm">{freelancer.title}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center">
+                      <Star className="h-4 w-4 mr-1 fill-yellow-400 text-yellow-400" />
+                      <span className="font-medium">{freelancer.rating}</span>
+                      <span className="text-gray-500 text-sm ml-1">
+                        ({freelancer.reviewCount})
+                      </span>
                     </div>
                   </div>
-                  <div className="flex items-center">
-                    <Star className="h-4 w-4 mr-1 fill-yellow-400 text-yellow-400" />
-                    <span className="font-medium">{freelancer.rating}</span>
-                    <span className="text-gray-500 text-sm ml-1">
-                      ({freelancer.reviewCount})
-                    </span>
-                  </div>
-                </div>
 
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {freelancer.skills.map((skill, index) => (
-                    <Badge key={index} variant="outline" className="bg-brand-50">
-                      {skill}
-                    </Badge>
-                  ))}
-                </div>
-
-                <div className="flex items-center justify-between mt-4">
-                  <div>
-                    <span className="font-bold text-brand-600">${freelancer.hourlyRate}</span>
-                    <span className="text-gray-500 text-sm">/hr</span>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {freelancer.skills.map((skill, index) => (
+                      <Badge key={index} variant="outline" className="bg-brand-50">
+                        {skill}
+                      </Badge>
+                    ))}
                   </div>
-                  <Button className="bg-brand-600 hover:bg-brand-700">
-                    View Profile
-                  </Button>
-                </div>
 
-                {freelancer.verified && (
-                  <div className="mt-3 flex items-center text-sm">
-                    <Badge variant="secondary" className="py-0 h-5">
-                      <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
-                      Verified Pro
-                    </Badge>
+                  <div className="flex items-center justify-between mt-4">
+                    <div>
+                      <span className="font-bold text-brand-600">${freelancer.hourlyRate}</span>
+                      <span className="text-gray-500 text-sm">/hr</span>
+                    </div>
+                    <Button className="bg-brand-600 hover:bg-brand-700" asChild>
+                      <Link to={`/freelancers/${freelancer.id}`}>
+                        View Profile
+                      </Link>
+                    </Button>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+
+                  {freelancer.verified && (
+                    <div className="mt-3 flex items-center text-sm">
+                      <Badge variant="secondary" className="py-0 h-5">
+                        <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
+                        Verified Pro
+                      </Badge>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <div className="col-span-full text-center py-12">
+              <p className="text-gray-500 mb-4">No freelancers match your search criteria.</p>
+              <Button variant="outline" onClick={() => setSearchQuery("")}>
+                Clear Search
+              </Button>
+            </div>
+          )}
         </div>
 
-        <div className="flex justify-center mt-8">
-          <Button variant="outline">Load More Freelancers</Button>
-        </div>
+        {filteredFreelancers.length > 0 && (
+          <div className="flex justify-center mt-8">
+            <Button variant="outline">Load More Freelancers</Button>
+          </div>
+        )}
       </div>
     </MainLayout>
   );
